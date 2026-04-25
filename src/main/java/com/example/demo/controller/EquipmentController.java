@@ -66,12 +66,19 @@ public class EquipmentController {
     public ResponseEntity<Equipment> assignEquipmentToEmployee(@PathVariable String equipmentId, @PathVariable String employeeId) {
         Equipment equipment = equipmentRepository.findById(equipmentId).orElse(null);
         Employee employee = employeeRepository.findById(employeeId).orElse(null);
-
         if (equipment == null || employee == null) {
             return ResponseEntity.notFound().build();
         }
+        if ("In Use".equalsIgnoreCase(equipment.getStatus())) {
+            return ResponseEntity.badRequest().build();
+        }
+        if (!equipment.getSite().getId().equals(employee.getSite().getId())) {
+            return ResponseEntity.badRequest().build();
+        }
+
         equipment.setAssignedTo(employee);
         equipment.setStatus("In Use");
+
         EquipmentLog log = new EquipmentLog(equipment, employee, LocalDateTime.now());
         equipmentLogRepository.save(log);
         return ResponseEntity.ok(equipmentRepository.save(equipment));
