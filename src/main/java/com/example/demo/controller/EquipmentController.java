@@ -12,6 +12,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
+import com.example.demo.model.UserAccount;
+import com.example.demo.repository.UserAccountRepository;
 
 @RestController
 @RequestMapping("/v1")
@@ -21,11 +23,18 @@ public class EquipmentController {
     private final EquipmentRepository equipmentRepository;
     private final EmployeeRepository employeeRepository;
     private final EquipmentLogRepository equipmentLogRepository;
+    private final UserAccountRepository userAccountRepository;
 
-    public EquipmentController(EquipmentRepository equipmentRepository, EmployeeRepository employeeRepository,EquipmentLogRepository equipmentLogRepository) {
+    public EquipmentController(
+            EquipmentRepository equipmentRepository,
+            EmployeeRepository employeeRepository,
+            EquipmentLogRepository equipmentLogRepository,
+            UserAccountRepository userAccountRepository
+    ) {
         this.equipmentRepository = equipmentRepository;
         this.employeeRepository = employeeRepository;
         this.equipmentLogRepository = equipmentLogRepository;
+        this.userAccountRepository = userAccountRepository;
     }
 
     @PostMapping("/equipment")
@@ -63,7 +72,16 @@ public class EquipmentController {
     }
 
     @PutMapping("/equipment/{equipmentId}/assign/{employeeId}")
-    public ResponseEntity<Equipment> assignEquipmentToEmployee(@PathVariable String equipmentId, @PathVariable String employeeId) {
+    public ResponseEntity<Equipment> assignEquipmentToEmployee(
+            @PathVariable String equipmentId,
+            @PathVariable String employeeId,
+            @RequestParam String username
+    ) {
+        UserAccount user = userAccountRepository.findById(username).orElse(null);
+        if (user == null || !"MANAGER".equalsIgnoreCase(user.getRole())) {
+            return ResponseEntity.status(403).build();
+        }
+
         Equipment equipment = equipmentRepository.findById(equipmentId).orElse(null);
         Employee employee = employeeRepository.findById(employeeId).orElse(null);
         if (equipment == null || employee == null) {

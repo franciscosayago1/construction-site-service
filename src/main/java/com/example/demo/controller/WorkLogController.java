@@ -6,9 +6,10 @@ import com.example.demo.repository.EmployeeRepository;
 import com.example.demo.repository.WorkLogRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
 import java.time.LocalDateTime;
 import java.util.List;
+import com.example.demo.model.UserAccount;
+import com.example.demo.repository.UserAccountRepository;
 
 @RestController
 @RequestMapping("/v1")
@@ -16,14 +17,33 @@ public class WorkLogController {
 
     private final WorkLogRepository workLogRepository;
     private final EmployeeRepository employeeRepository;
+    private final UserAccountRepository userAccountRepository;
 
-    public WorkLogController(WorkLogRepository workLogRepository, EmployeeRepository employeeRepository) {
+    public WorkLogController(
+            WorkLogRepository workLogRepository,
+            EmployeeRepository employeeRepository,
+            UserAccountRepository userAccountRepository
+    ) {
         this.workLogRepository = workLogRepository;
         this.employeeRepository = employeeRepository;
+        this.userAccountRepository = userAccountRepository;
     }
 
     @PostMapping("/employee/{employeeId}/clock-in")
-    public ResponseEntity<?> clockIn(@PathVariable String employeeId) {
+    public ResponseEntity<?> clockIn(
+            @PathVariable String employeeId,
+            @RequestParam String username
+    ) {
+        UserAccount user = userAccountRepository.findById(username).orElse(null);
+
+        if (user == null || !"EMPLOYEE".equalsIgnoreCase(user.getRole())) {
+            return ResponseEntity.status(403).body("Only employees can clock in");
+        }
+
+        if (!employeeId.equals(user.getEmployeeId())) {
+            return ResponseEntity.status(403).body("You can only clock in for yourself");
+        }
+
         Employee employee = employeeRepository.findById(employeeId).orElse(null);
 
         if (employee == null) {
@@ -39,7 +59,20 @@ public class WorkLogController {
     }
 
     @PutMapping("/employee/{employeeId}/clock-out")
-    public ResponseEntity<?> clockOut(@PathVariable String employeeId) {
+    public ResponseEntity<?> clockOut(
+            @PathVariable String employeeId,
+            @RequestParam String username
+    ) {
+        UserAccount user = userAccountRepository.findById(username).orElse(null);
+
+        if (user == null || !"EMPLOYEE".equalsIgnoreCase(user.getRole())) {
+            return ResponseEntity.status(403).body("Only employees can clock out");
+        }
+
+        if (!employeeId.equals(user.getEmployeeId())) {
+            return ResponseEntity.status(403).body("You can only clock out for yourself");
+        }
+
         Employee employee = employeeRepository.findById(employeeId).orElse(null);
 
         if (employee == null) {
