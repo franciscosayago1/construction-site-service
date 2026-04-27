@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <script src="app.js"></script>
+</head>
+<body>
+
+<h2 id="welcome"></h2>
+<div id="menu"></div>
+
+<script>
+    const user = requireLogin();
+
+    welcome.innerText = `Welcome ${user.username} (${user.role})`;
+
+    if (user.role === "MANAGER") {
+        menu.innerHTML = `
+            <button onclick="location.href='employees.html'">Employees</button>
+            <button onclick="location.href='equipment.html'">Equipment</button>
+            <button onclick="location.href='reports.html'">Reports</button>
+        `;
+    } else {
+        menu.innerHTML = `
+            <button onclick="location.href='clock.html'">Clock</button>
+            <button onclick="location.href='myWork.html'">My Work</button>
+        `;
+    }
+</script>
+
+</body>
+</html>

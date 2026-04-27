@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reports</title>
+    <script src="app.js"></script>
+</head>
+<body>
+
+<h2>Equipment In Use</h2>
+
+<button onclick="load()">Load</button>
+
+<ul id="list"></ul>
+
+<script>
+    requireRole("MANAGER");
+
+    async function load() {
+        const data = await api("/reports/equipment/in-use");
+
+        list.innerHTML = data.map(e =>
+            `<li>${e.equipmentName} - ${e.status}</li>`
+        ).join("");
+    }
+</script>
+
+</body>
+</html>

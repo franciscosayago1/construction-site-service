@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clock</title>
+    <script src="app.js"></script>
+</head>
+<body>
+
+<h2>Clock In / Out</h2>
+
+<button onclick="clockIn()">Clock In</button>
+<button onclick="clockOut()">Clock Out</button>
+
+<script>
+    const user = requireRole("EMPLOYEE");
+
+    async function clockIn() {
+        await api(`/employee/${user.employeeId}/clock-in?username=${user.username}`, {
+            method: "POST"
+        });
+        alert("Clocked in");
+    }
+
+    async function clockOut() {
+        await api(`/employee/${user.employeeId}/clock-out?username=${user.username}`, {
+            method: "PUT"
+        });
+        alert("Clocked out");
+    }
+</script>
+
+</body>
+</html>

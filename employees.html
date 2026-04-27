@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employees</title>
+    <script src="app.js"></script>
+</head>
+<body>
+
+<h2>Employees</h2>
+
+<input id="id" placeholder="ID">
+<input id="name" placeholder="Name">
+<input id="role" placeholder="Role">
+<input id="rate" placeholder="Rate">
+<input id="status" placeholder="Status">
+<input id="site" placeholder="Site ID">
+
+<button onclick="add()">Add</button>
+
+<div id="list"></div>
+
+<script>
+    requireRole("MANAGER");
+
+    async function load() {
+        const data = await api("/search/employees?name=");
+
+        list.innerHTML = data.map(e => `
+            <div>
+                ${e.employeeName} (${e.role})
+                <button onclick="del('${e.id}')">Delete</button>
+            </div>
+        `).join("");
+    }
+
+    async function add() {
+        await api("/employee", {
+            method: "POST",
+            body: JSON.stringify({
+                id: id.value,
+                employeeName: name.value,
+                role: role.value,
+                hourlyRate: parseFloat(rate.value),
+                status: status.value,
+                site: { id: site.value }
+            })
+        });
+
+        load();
+    }
+
+    async function del(id) {
+        await api("/employee/" + id, { method: "DELETE" });
+        load();
+    }
+
+    load();
+</script>
+
+</body>
+</html>

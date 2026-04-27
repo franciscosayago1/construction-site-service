@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sites</title>
+</head>
+<body>
+
+<h2>Sites</h2>
+
+<input id="siteId" placeholder="Site ID">
+<button onclick="loadSite()">Load Site</button>
+
+<div id="output"></div>
+
+<script>
+    const user = JSON.parse(localStorage.getItem("user"));
+
+if (!user) {
+    window.location.href = "/login.html";
+}
+    function loadSite() {
+        let id = document.getElementById("siteId").value;
+
+        fetch("/v1/site/" + id)
+        .then(res => res.json())
+        .then(site => {
+            document.getElementById("output").innerHTML =
+                "<h3>" + site.siteName + "</h3>" +
+                "<p>" + site.location + "</p>";
+        });
+    }
+</script>
+
+</body>
+</html>

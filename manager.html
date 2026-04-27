@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>manager</title>
+</head>
+<body>
+
+<h1>Manager Dashboard</h1>
+
+<button onclick="loadEmployees()">Load Employees</button>
+<button onclick="loadEquipment()">Load Equipment</button>
+<button onclick="loadActivity()">Activity Logs</button>
+
+<div id="content"></div>
+<script src="app.js"></script>
+<script>
+    function loadEmployees() {
+    fetch("http://localhost:8080/v1/search/employees?name=")
+        .then(res => res.json())
+        .then(data => {
+            let html = "<h2>Employees</h2><table border='1'>";
+            data.forEach(e => {
+                html += `
+                    <tr>
+                        <td>${e.id}</td>
+                        <td>${e.employeeName}</td>
+                        <td>${e.role}</td>
+                        <td>${e.status}</td>
+                    </tr>
+                `;
+            });
+            html += "</table>";
+            document.getElementById("content").innerHTML = html;
+        });
+}
+    function loadEquipment() {
+    fetch("http://localhost:8080/v1/search/equipment/name?name=")
+        .then(res => res.json())
+        .then(data => {
+            let html = "<h2>Equipment</h2><table border='1'>";
+            data.forEach(e => {
+                html += `
+                    <tr>
+                        <td>${e.id}</td>
+                        <td>${e.equipmentName}</td>
+                        <td>${e.status}</td>
+                    </tr>
+                `;
+            });
+            html += "</table>";
+            document.getElementById("content").innerHTML = html;
+        });
+}
+    function loadActivity() {
+    Promise.all([
+        fetch("http://localhost:8080/v1/reports/work-logs").then(r => r.json()),
+        fetch("http://localhost:8080/v1/reports/equipment-logs").then(r => r.json())
+    ])
+    .then(([workLogs, equipLogs]) => {
+
+        let html = "<h2>Activity Logs</h2>";
+
+        html += "<h3>Work Logs</h3><table border='1'>";
+        workLogs.forEach(w => {
+            html += `
+                <tr>
+                    <td>${w.employee.employeeName}</td>
+                    <td>${w.clockInTime}</td>
+                    <td>${w.clockOutTime}</td>
+                </tr>
+            `;
+        });
+        html += "</table>";
+
+        html += "<h3>Equipment Logs</h3><table border='1'>";
+        equipLogs.forEach(e => {
+            html += `
+                <tr>
+                    <td>${e.employee.employeeName}</td>
+                    <td>${e.equipment.toolName}</td>
+                    <td>${e.assignedAt}</td>
+                    <td>${e.returnedAt || "Still assigned"}</td>
+                </tr>
+            `;
+        });
+        html += "</table>";
+
+        document.getElementById("content").innerHTML = html;
+    });
+}
+
+
+    const user = requireRole("MANAGER");
+
+    async function load() {
+        const data = await api("/search/employees?name=");
+
+        list.innerHTML = data.map(e => `
+            <div>
+                ${e.employeeName} (${e.role})
+                <button onclick="del('${e.id}')">Delete</button>
+            </div>
+        `).join("");
+    }
+
+    async function add() {
+        await api("/employee", {
+            method: "POST",
+            body: JSON.stringify({
+                id: id.value,
+                employeeName: name.value,
+                role: role.value,
+                hourlyRate: rate.value,
+                status: status.value,
+                site: { id: site.value }
+            })
+        });
+
+        load();
+    }
+
+    async function del(id) {
+        await api("/employee/" + id, { method: "DELETE" });
+        load();
+    }
+
+    load();
+</script>
+</body>
+</html>

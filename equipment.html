@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Equipment</title>
+    <script src="app.js"></script>
+</head>
+<body>
+
+<h2>Equipment</h2>
+
+<input id="eid" placeholder="ID">
+<input id="ename" placeholder="Name">
+<input id="estatus" placeholder="Status">
+<input id="esite" placeholder="Site ID">
+
+<button onclick="add()">Add</button>
+
+<h3>Assign</h3>
+
+<input id="eqId" placeholder="Equipment ID">
+<input id="empId" placeholder="Employee ID">
+<input id="managerUser" placeholder="Manager Username">
+
+<button onclick="assign()">Assign</button>
+
+<div id="list"></div>
+
+<script>
+    const user = requireRole("MANAGER");
+
+    async function load() {
+        const data = await api("/search/equipment/name?name=");
+
+        list.innerHTML = data.map(e => `
+            <div>
+                ${e.equipmentName} - ${e.status}
+                <button onclick="del('${e.id}')">Delete</button>
+            </div>
+        `).join("");
+    }
+
+    async function add() {
+        await api("/equipment", {
+            method: "POST",
+            body: JSON.stringify({
+                id: eid.value,
+                equipmentName: ename.value,
+                status: estatus.value,
+                site: { id: esite.value }
+            })
+        });
+
+        load();
+    }
+
+    async function del(id) {
+        await api("/equipment/" + id, { method: "DELETE" });
+        load();
+    }
+
+    async function assign() {
+        await api(`/equipment/${eqId.value}/assign/${empId.value}?username=${managerUser.value}`, {
+            method: "PUT"
+        });
+
+        alert("Assigned!");
+        load();
+    }
+
+    load();
+</script>
+
+</body>
+</html>

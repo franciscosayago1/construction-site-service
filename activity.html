@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title>Activity Logs</title></head>
+<body>
+
+<h2>Activity Logs</h2>
+
+<button onclick="load()">Load Logs</button>
+
+<div id="out"></div>
+
+<script src="app.js"></script>
+
+<script>
+    requireAuth();
+
+    async function load() {
+        const [w,e] = await Promise.all([
+            fetch(`${API}/v1/reports/work-logs`).then(r=>r.json()),
+            fetch(`${API}/v1/reports/equipment-logs`).then(r=>r.json())
+        ]);
+
+        out.innerHTML = `
+            <h3>Work Logs</h3>
+            ${w.map(x=>`
+                <div>${x.employee.employeeName} - ${x.clockInTime}</div>
+            `).join("")}
+
+            <h3>Equipment Logs</h3>
+            ${e.map(x=>`
+                <div>${x.employee.employeeName} → ${x.equipment.equipmentName}</div>
+            `).join("")}
+        `;
+    }
+</script>
+
+</body>
+</html>
